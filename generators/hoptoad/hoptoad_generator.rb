@@ -61,8 +61,17 @@ class HoptoadGenerator < Rails::Generator::Base
   end
 
   def heroku_api_key
-    app = options[:app] ? " --app #{options[:app]}" : ''
-    `heroku console#{app} 'puts ENV[%{HOPTOAD_API_KEY}]'`.split("\n").first
+    cmd = heroku_cedar? ? 'run console' : 'console'
+    heroku_cmd(cmd, "'puts ENV[%{HOPTOAD_API_KEY}]'").split("\n").first
+  end
+
+  def heroku_cmd(cmd, input = nil)
+    app = " --app #{options[:app]}" if options[:app]
+    `heroku #{cmd} #{input} #{app}`
+  end
+
+  def heroku_cedar?
+    heroku_cmd(:stack).split("\n").detect {|stack| stack[0] == '*' }.include?('cedar')
   end
 
   def heroku?
