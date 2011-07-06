@@ -15,7 +15,9 @@ class HoptoadGenerator < Rails::Generators::Base
     ensure_plugin_is_not_present
     append_capistrano_hook
     generate_initializer unless api_key_configured?
-    determine_api_key if heroku?
+    if heroku?
+      ENV['HOPTOAD_API_KEY'] ||= options[:api_key] || determine_api_key
+    end
     test_hoptoad
   end
 
@@ -59,21 +61,31 @@ class HoptoadGenerator < Rails::Generators::Base
 
   def determine_api_key
     puts "Attempting to determine your API Key from Heroku..."
-    ENV['HOPTOAD_API_KEY'] = heroku_api_key
-    if ENV['HOPTOAD_API_KEY'].blank?
+    api_key = heroku_api_key
+    if api_key.blank?
       puts "... Failed."
       puts "WARNING: We were unable to detect the Hoptoad API Key from your Heroku environment."
       puts "Your Heroku application environment may not be configured correctly."
       exit 1
     else
       puts "... Done."
-      puts "Heroku's Hoptoad API Key is '#{ENV['HOPTOAD_API_KEY']}'"
+      puts "Heroku's Hoptoad API Key is '#{api_key}'"
     end
+    api_key
   end
 
   def heroku_api_key
-    app = options[:app] ? " --app #{options[:app]}" : ''
-    `heroku console#{app} 'puts ENV[%{HOPTOAD_API_KEY}]'`.split("\n").first
+    cmd = heroku_cedar? ? 'run console' : 'console'
+    heroku_cmd(cmd, "'puts ENV[%{HOPTOAD_API_KEY}]'").split("\n").first
+  end
+
+  def heroku_cmd(cmd, input = nil)
+    app = " --app #{options[:app]}" if options[:app]
+    `heroku #{cmd} #{input} #{app}`
+  end
+
+  def heroku_cedar?
+    heroku_cmd(:stack).split("\n").detect {|stack| stack[0] == '*' }.include?('cedar')
   end
 
   def heroku?
