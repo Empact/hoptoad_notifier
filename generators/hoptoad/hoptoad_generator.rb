@@ -33,7 +33,9 @@ class HoptoadGenerator < Rails::Generator::Base
           m.append_to 'config/environment.rb', "require 'config/hoptoad'"
         end
       end
-      determine_api_key if heroku?
+      if heroku?
+        ENV['HOPTOAD_API_KEY'] ||= options[:api_key] || determine_api_key
+      end
       m.rake "hoptoad:test --trace", :generate_only => true
     end
   end
@@ -48,16 +50,17 @@ class HoptoadGenerator < Rails::Generator::Base
 
   def determine_api_key
     puts "Attempting to determine your API Key from Heroku..."
-    ENV['HOPTOAD_API_KEY'] = heroku_api_key
-    if ENV['HOPTOAD_API_KEY'].blank?
+    api_key = heroku_api_key
+    if api_key.blank?
       puts "... Failed."
       puts "WARNING: We were unable to detect the Hoptoad API Key from your Heroku environment."
       puts "Your Heroku application environment may not be configured correctly."
       exit 1
     else
       puts "... Done."
-      puts "Heroku's Hoptoad API Key is '#{ENV['HOPTOAD_API_KEY']}'"
+      puts "Heroku's Hoptoad API Key is '#{api_key}'"
     end
+    api_key
   end
 
   def heroku_api_key
