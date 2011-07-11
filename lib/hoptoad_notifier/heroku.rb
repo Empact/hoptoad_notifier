@@ -15,7 +15,10 @@ class HoptoadNotifier::Heroku
   private
 
   def cmd(command, input = nil, pipes = nil)
-    command = 'run console' if command.to_sym == :console && cedar_stack?
+    if cedar_stack? && command.to_sym == :console
+      # command = 'run console'
+      raise "This command doesn't currently work on heroku cedar"
+    end
     "heroku #{command} #{input} #{@app}"
   end
 
