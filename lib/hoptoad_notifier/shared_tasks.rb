@@ -18,7 +18,6 @@ namespace :hoptoad do
   namespace :heroku do
     desc "Install Heroku deploy notifications addon"
     task :add_deploy_notification => [:environment] do
-      # `heroku console 'puts ENV[%{HOPTOAD_API_KEY}]' | head -n 1`.strip
       heroku = HoptoadNotifier::Heroku.new(ENV['APP'])
       command = %Q(heroku addons:add deployhooks:http url="http://hoptoadapp.com/deploys.txt?deploy[rails_env]=#{heroku.rails_env}&api_key=#{heroku.hoptoad_api_key}")
 
