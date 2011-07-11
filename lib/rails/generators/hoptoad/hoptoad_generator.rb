@@ -1,4 +1,5 @@
 require 'rails/generators'
+require 'hoptoad_notifier/generator'
 
 class HoptoadGenerator < Rails::Generators::Base
   include HoptoadNotifier::Generator

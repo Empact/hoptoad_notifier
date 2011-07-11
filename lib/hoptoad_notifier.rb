@@ -20,6 +20,8 @@ require 'hoptoad_notifier/railtie' if defined?(Rails::Railtie)
 
 # Gem for applications to automatically post errors to the Hoptoad of their choice.
 module HoptoadNotifier
+  autoload :Heroku, 'hoptoad_notifier/heroku'
+  autoload :Generator, 'hoptoad_notifier/generator'
 
   API_VERSION = "2.0"
   LOG_PREFIX = "** [Hoptoad] "
