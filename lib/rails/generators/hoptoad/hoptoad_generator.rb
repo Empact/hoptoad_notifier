@@ -1,6 +1,7 @@
 require 'rails/generators'
 
 class HoptoadGenerator < Rails::Generators::Base
+  include HoptoadNotifier::Generator
 
   class_option :api_key, :aliases => "-k", :type => :string, :desc => "Your Hoptoad API key"
   class_option :heroku, :type => :boolean, :desc => "Use the Heroku addon to provide your Hoptoad API key"
@@ -11,7 +12,7 @@ class HoptoadGenerator < Rails::Generators::Base
   end
 
   def install
-    ensure_api_key_was_configured
+    require_api_key!
     ensure_plugin_is_not_present
     append_capistrano_hook
     generate_initializer unless api_key_configured?
@@ -22,13 +23,6 @@ class HoptoadGenerator < Rails::Generators::Base
   end
 
   private
-
-  def ensure_api_key_was_configured
-    if !options[:api_key] && !options[:heroku] && !api_key_configured?
-      puts "Must pass --api-key or --heroku or create config/initializers/hoptoad.rb"
-      exit
-    end
-  end
 
   def ensure_plugin_is_not_present
     if plugin_is_present?

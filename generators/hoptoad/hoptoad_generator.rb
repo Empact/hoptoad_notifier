@@ -2,6 +2,8 @@ require File.expand_path(File.dirname(__FILE__) + "/lib/insert_commands.rb")
 require File.expand_path(File.dirname(__FILE__) + "/lib/rake_commands.rb")
 
 class HoptoadGenerator < Rails::Generator::Base
+  include HoptoadNotifier::Generator
+
   def add_options!(opt)
     opt.on('-k', '--api-key=key', String, "Your Hoptoad API key")                                               { |v| options[:api_key] = v}
     opt.on('-h', '--heroku',              "Use the Heroku addon to provide your Hoptoad API key")               { |v| options[:heroku]  = v}
@@ -9,10 +11,7 @@ class HoptoadGenerator < Rails::Generator::Base
   end
 
   def manifest
-    if !api_key_configured? && !options[:api_key] && !options[:heroku]
-      puts "Must pass --api-key or --heroku or create config/initializers/hoptoad.rb"
-      exit
-    end
+    require_api_key!
     if plugin_is_present?
       puts "You must first remove the hoptoad_notifier plugin. Please run: script/plugin remove hoptoad_notifier"
       exit
